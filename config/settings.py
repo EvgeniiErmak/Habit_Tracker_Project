@@ -38,9 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'config',
-    'habit_tracker',
+
     'telegram_integration',
+    'habit_tracker',
+
+    'config',
     'users',
 ]
 
