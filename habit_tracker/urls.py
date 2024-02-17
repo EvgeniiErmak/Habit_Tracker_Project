@@ -1,6 +1,15 @@
-from django.urls import path
-from . import views
+# habit_tracker/urls.py
+from .views import HabitListCreateView, HabitDetailView
+from rest_framework.routers import DefaultRouter
+from django.urls import path, include
+from .views import HabitViewSet
+
+
+router = DefaultRouter()
+router.register(r'habits', HabitViewSet)
+
 
 urlpatterns = [
-    # Добавьте сюда ваши маршруты URL
+    path('habits/', HabitListCreateView.as_view(), name='habit-list-create'),
+    path('habits/<int:pk>/', HabitDetailView.as_view(), name='habit-detail'),
 ]
