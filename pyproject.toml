@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "config"
+version = "0.1.0"
+description = ""
+authors = ["Евгений Ермак <144560375+EvgeniiErmak@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^5.0.2"
+djangorestframework = "^3.14.0"
+django-cors-headers = "^4.3.1"
+python-decouple = "^3.8"
+celery = "^5.3.6"
+python-telegram-bot = "^20.8"
+drf-yasg = "^1.21.7"
+flake8 = "^7.0.0"
+pytest = "^8.0.1"
+coverage = "^7.4.1"
+psycopg2-binary = "^2.9.9"
+django-environ = "^0.11.2"
+djangorestframework-simplejwt = "^5.3.1"
+pillow = "^10.2.0"
+django-bootstrap5 = "^23.4"
+django-filter = "^23.5"
+django-crispy-forms = "^2.1"
+requests = "^2.31.0"
+django-debug-toolbar = "^4.3.0"
+django-extensions = "^3.2.3"
+django-allauth = "^0.61.1"
+whitenoise = "^6.6.0"
+gunicorn = "^21.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
