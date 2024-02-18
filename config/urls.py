@@ -14,15 +14,14 @@ Including another URLconf
     1. Import include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-
+from users.views import RegisterUserView
 from django.contrib import admin
 from django.urls import path, include
+from telegram_integration.views import webhook
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from habit_tracker.views import HabitViewSet
-from users.views import RegisterUserView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,4 +30,5 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/users/', include('users.urls')),
+    path('telegram/webhook/', webhook, name='telegram_webhook'),
 ]

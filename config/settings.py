@@ -168,3 +168,9 @@ REST_FRAMEWORK = {
     ],
 }
 
+# Add celery settings
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+
+# Add telegram bot token
+TELEGRAM_BOT_TOKEN = '6508959358:AAESl7Sb20VbkYx26qU-T0piY0UF_EeiWf8'
