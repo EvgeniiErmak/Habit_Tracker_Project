@@ -1,6 +1,8 @@
+# telegram_integration/urls.py
+
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Добавьте сюда ваши маршруты URL
+    path('webhook/', views.webhook, name='webhook'),
 ]
