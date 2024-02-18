@@ -41,7 +41,6 @@ INSTALLED_APPS = [
 
     'telegram_integration',
     'habit_tracker',
-
     'config',
     'users',
 ]
@@ -150,3 +149,6 @@ def add_bootstrap_to_context(request):
         'BOOTSTRAP_CSS_URL': BOOTSTRAP_CSS_URL,
         'BOOTSTRAP_JS_URL': BOOTSTRAP_JS_URL,
     }
+
+
+CORS_ORIGIN_ALLOW_ALL = True
