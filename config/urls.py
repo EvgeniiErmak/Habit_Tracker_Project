@@ -1,20 +1,7 @@
-"""
-URL configuration for Habit_Tracker_Project project.
+# config/urls.py
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from users.views import RegisterUserView
+from habit_tracker.views import PublicHabitListView, UserHabitListView, HabitCreateView, HabitUpdateView, HabitDeleteView
 from django.contrib import admin
 from django.urls import path, include
 from telegram_integration.views import webhook
@@ -27,12 +14,19 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('habit_tracker.urls')),
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),  # Генерация схемы API
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),  # Swagger UI
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),  # Redoc
     path('api/register/', RegisterUserView.as_view(), name='register'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/users/', include('users.urls')),
     path('telegram/webhook/', webhook, name='telegram_webhook'),
+
+    # Добавленные эндпоинты для документации
+    path('api/public-habits/', PublicHabitListView.as_view(), name='public-habits'),
+    path('api/my-habits/', UserHabitListView.as_view(), name='my-habits'),
+    path('api/create-habit/', HabitCreateView.as_view(), name='create-habit'),
+    path('api/update-habit/<int:pk>/', HabitUpdateView.as_view(), name='update-habit'),
+    path('api/delete-habit/<int:pk>/', HabitDeleteView.as_view(), name='delete-habit'),
 ]

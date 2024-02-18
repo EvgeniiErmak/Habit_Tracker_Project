@@ -4,6 +4,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 
 class RegisterUserView(generics.CreateAPIView):
@@ -42,3 +45,29 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             'username': user.username,
             'email': user.email,
         })
+
+
+class CustomAuthentication(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        return Response({'username': user.username, 'email': user.email})
+
+
+class UserLogoutView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.data.get('refresh_token')
+
+        if not refresh_token:
+            return Response({"error": "Refresh token is required."}, status=400)
+
+        try:
+            RefreshToken(refresh_token).blacklist()
+            return Response({"success": "User successfully logged out."}, status=200)
+        except Exception as e:
+            return Response({"error": f"Unable to log out user. {str(e)}"}, status=500)
