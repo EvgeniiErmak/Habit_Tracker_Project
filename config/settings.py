@@ -41,6 +41,8 @@ INSTALLED_APPS = [
 
     'telegram_integration',
     'rest_framework',
+    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
     'habit_tracker',
     'config',
     'users',
@@ -162,6 +164,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
 
