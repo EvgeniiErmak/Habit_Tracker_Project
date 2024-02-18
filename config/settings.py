@@ -43,8 +43,9 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'telegram_integration',
-    'corsheaders',
+    'drf_spectacular',
     'habit_tracker',
+    'corsheaders',
     'config',
     'users',
 ]
