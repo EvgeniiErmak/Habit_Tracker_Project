@@ -6,11 +6,12 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 import logging
-from django.http import HttpResponse
 from telegram import Bot, Update
 from telegram.ext import CommandHandler, MessageHandler, Filters, Updater
 from django.contrib.auth.models import User
 from users.models import UserProfile  # Импорт модели UserProfile
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 TELEGRAM_BOT_TOKEN = '6508959358:AAESl7Sb20VbkYx26qU-T0piY0UF_EeiWf8'
 
@@ -71,13 +72,16 @@ def echo(update: Update, context):
 
 
 # Функция для обработки вебхука
+@csrf_exempt
 def webhook(request):
-    bot = Bot(token=TELEGRAM_BOT_TOKEN)
-    updater = Updater(bot=bot, use_context=True)
     if request.method == 'POST':
+        bot = Bot(token=TELEGRAM_BOT_TOKEN)
+        updater = Updater(bot=bot, use_context=True)
         update = Update.de_json(request.body, bot)
         updater.dispatcher.process_update(update)
-    return HttpResponse('ок')
+        return JsonResponse({'status': 'ok'})
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 # Запуск бота, если файл запущен как скрипт

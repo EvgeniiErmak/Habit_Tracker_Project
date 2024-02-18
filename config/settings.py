@@ -39,10 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'telegram_integration',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'telegram_integration',
+    'corsheaders',
     'habit_tracker',
     'config',
     'users',
@@ -56,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -155,6 +157,10 @@ def add_bootstrap_to_context(request):
 
 
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Замените это на ваш фронтенд-адрес
+    "https://yourproductionfrontend.com",  # Замените это на адрес вашего фронтенда в продакшне
+]
 
 
 REST_FRAMEWORK = {
