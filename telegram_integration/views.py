@@ -56,8 +56,13 @@ def start(update: Update, context):
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
     user_profile = update_user_profile(user_id, chat_id)
-    context.bot.send_message(chat_id=chat_id,
-                        text='Добро пожаловать в Habit Tracker! Вы будете получать напоминания о ваших привычках здесь.')
+    menu_text = "Добро пожаловать в Habit Tracker! Вы будете получать напоминания о ваших привычках здесь.\n" \
+                "Вот список доступных команд:\n" \
+                "/start - Начать использование приложения\n" \
+                "/help - Показать список команд помощи\n" \
+                "/habits - Показать список привычек\n" \
+                "/add_habit - Добавить новую привычку"
+    context.bot.send_message(chat_id=chat_id, text=menu_text)
 
 
 # Функция для команды /help
