@@ -159,7 +159,7 @@ def add_bootstrap_to_context(request):
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Замените это на ваш фронтенд-адрес
+    "http://localhost:8000",  # Замените это на ваш фронтенд-адрес
     "https://yourproductionfrontend.com",  # Замените это на адрес вашего фронтенда в продакшне
 ]
 
