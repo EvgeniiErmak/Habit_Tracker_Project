@@ -502,6 +502,16 @@ files = [
 ]
 
 [[package]]
+name = "dispatcher"
+version = "1.0"
+description = "A library for event-driven programming"
+optional = false
+python-versions = "*"
+files = [
+    {file = "dispatcher-1.0.tar.gz", hash = "sha256:b82ee55904098c418d412262ff871a1ebc1cf91ea5d9cfb30e950fec3b8c0edb"},
+]
+
+[[package]]
 name = "dj-rest-auth"
 version = "5.0.2"
 description = "Authentication and Registration in Django Rest Framework"
@@ -1694,4 +1704,4 @@ brotli = ["Brotli"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "5bb8ccb6146e664f76e2ab6071abbeb472cabcdde6d8f0c63a6a32f0f7bf9a1e"
+content-hash = "f5e2ec767db24fb0e6272d544e24a56b540cc9695346709c652df80c49284dfa"

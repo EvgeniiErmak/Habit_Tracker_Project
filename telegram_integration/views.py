@@ -9,9 +9,9 @@ django.setup()
 
 from django.contrib.auth.models import User
 from users.models import UserProfile
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from habit_tracker.models import Habit
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 TELEGRAM_BOT_TOKEN = '6508959358:AAESl7Sb20VbkYx26qU-T0piY0UF_EeiWf8'
 
@@ -98,7 +98,7 @@ def habits_command(update: Update, context):
     context.bot.send_message(chat_id=chat_id, text=message)
 
 
-# Определяем константы для состояний диалога
+# Определяем константы для состояний диалога создания привычки
 PLACE, TIME, ACTION, PLEASANT, RELATED_HABIT, FREQUENCY, REWARD, TIME_TO_COMPLETE, PUBLICITY, END = range(10)
 
 
@@ -115,6 +115,20 @@ def handle_place(update: Update, context: CallbackContext):
     habit_data['place'] = update.message.text
     update.message.reply_text("Отлично! Теперь укажите время, когда вы будете выполнять эту привычку.")
     return TIME
+
+
+# Добавляем функцию для настройки вебхука
+@csrf_exempt
+def webhook(request):
+    # Проверяем, что запрос пришел методом POST
+    if request.method == 'POST':
+        # Принимаем обновление от Telegram
+        update = Update.de_json(request.body, TELEGRAM_BOT_TOKEN)
+        # Обработка обновления
+        # ... (ваш код обработки обновления)
+        return HttpResponse(status=200)
+    else:
+        return HttpResponse(status=405)
 
 
 # Функция для обработки времени
@@ -205,9 +219,13 @@ def handle_publicity(update: Update, context: CallbackContext):
 def end_adding_habit(update: Update, context: CallbackContext):
     habit_data = context.user_data['habit_data']
 
+    # Получаем пользователя из базы данных
+    user_id = update.effective_user.id
+    user, created = User.objects.get_or_create(id=user_id)
+
     # Создаем новый объект привычки и сохраняем его в базе данных
     habit = Habit.objects.create(
-        user=update.effective_user,
+        user=user,
         name=habit_data.get('name', ''),
         place=habit_data.get('place', ''),
         time=habit_data.get('time', ''),
@@ -220,7 +238,7 @@ def end_adding_habit(update: Update, context: CallbackContext):
         publicity=habit_data.get('publicity', ''),
     )
 
-    # Сообщаем пользователю о успешном создании привычки
+    # Сообщаем пользователю об успешном создании привычки
     update.message.reply_text(f"Привычка успешно создана: {habit_data}")
 
     # Очищаем данные пользователя
@@ -234,29 +252,6 @@ def cancel(update: Update, context: CallbackContext):
     update.message.reply_text("Создание привычки отменено.")
     context.user_data.clear()
     return ConversationHandler.END
-
-
-# Функция для обработки ошибок
-def error(update: Update, context):
-    logger.warning(f'Обновление {update} вызвало ошибку {context.error}')
-
-
-# Функция для эхо-ответа
-def echo(update: Update, context):
-    update.message.reply_text(update.message.text)
-
-
-# Функция для обработки вебхука
-@csrf_exempt
-def webhook(request):
-    if request.method == 'POST':
-        bot = Bot(token=TELEGRAM_BOT_TOKEN)
-        updater = Updater(bot=bot, use_context=True)
-        update = Update.de_json(request.body, bot)
-        updater.dispatcher.process_update(update)
-        return JsonResponse({'status': 'ok'})
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 # Добавляем ConversationHandler для управления диалогом создания привычки
