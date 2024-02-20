@@ -223,6 +223,14 @@ def end_adding_habit(update: Update, context: CallbackContext):
     user_id = update.effective_user.id
     user, created = User.objects.get_or_create(id=user_id)
 
+    # Пытаемся найти связанную привычку в базе данных
+    related_habit_name = habit_data.get('related_habit', '')
+    related_habit = Habit.objects.filter(user=user, name=related_habit_name).first()
+
+    if not related_habit:
+        # Если связанная привычка не найдена, создаем новую
+        related_habit = Habit.objects.create(user=user, name=related_habit_name)
+
     # Создаем новый объект привычки и сохраняем его в базе данных
     habit = Habit.objects.create(
         user=user,
@@ -231,7 +239,7 @@ def end_adding_habit(update: Update, context: CallbackContext):
         time=habit_data.get('time', ''),
         action=habit_data.get('action', ''),
         pleasant=habit_data.get('pleasant', ''),
-        related_habit=habit_data.get('related_habit', ''),
+        related_habit=related_habit,  # Используем найденную или созданную привычку
         frequency=habit_data.get('frequency', ''),
         reward=habit_data.get('reward', ''),
         time_to_complete=habit_data.get('time_to_complete', ''),
