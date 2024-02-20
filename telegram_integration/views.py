@@ -1,16 +1,18 @@
 # telegram_integration/views.py
 import os
 import django
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 import logging
 from telegram import Bot, Update
-from telegram.ext import CommandHandler, MessageHandler, Filters, Updater
+from telegram.ext import CommandHandler, MessageHandler, Filters, Updater, CallbackContext
 from django.contrib.auth.models import User
 from users.models import UserProfile
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from habit_tracker.models import Habit
 
 TELEGRAM_BOT_TOKEN = '6508959358:AAESl7Sb20VbkYx26qU-T0piY0UF_EeiWf8'
 
@@ -30,6 +32,86 @@ requests = TelegramSession()
 
 # Инициализируем логгер
 logger = logging.getLogger(__name__)
+
+# Список параметров привычки
+habit_params = ["место", "время", "действие", "признак приятной привычки", "связанная привычка",
+                "периодичность", "вознаграждение", "время на выполнение", "признак публичности"]
+
+# Пример формата ввода данных
+example_format = "Пример формата ввода данных:\n" \
+                 "Место: Кухня\n" \
+                 "Время: Утром\n" \
+                 "Действие: Завтрак\n" \
+                 "Признак приятной привычки: Да\n" \
+                 "Связанная привычка: Пить стакан воды перед едой\n" \
+                 "Периодичность: Ежедневно\n" \
+                 "Вознаграждение: Посмотреть любимый сериал\n" \
+                 "Время на выполнение: 30 минут\n" \
+                 "Признак публичности: Нет\n\n" \
+                 "Введите значение для параметра '{}':"
+
+
+# Функция для задания вопросов и создания привычки
+def add_habit(update: Update, context: CallbackContext):
+    chat_id = update.effective_chat.id
+    habit_data = {}
+
+    # Функция для задания вопроса
+    def ask_question(param_index):
+        if param_index < len(habit_params):
+            param_name = habit_params[param_index]
+            context.bot.send_message(chat_id=chat_id, text=example_format.format(param_name))
+            context.user_data["habit_param_index"] = param_index
+        else:
+            context.bot.send_message(chat_id=chat_id, text="Привычка успешно создана: {}".format(habit_data))
+            # Здесь можно сохранить привычку в базу данных или выполнять другие действия
+            context.user_data.pop("habit_param_index")
+
+    # Функция для обработки ответа пользователя
+    def handle_answer(update: Update, context: CallbackContext):
+        param_index = context.user_data.get("habit_param_index")
+        if param_index is not None and 0 <= param_index < len(habit_params):
+            param_name = habit_params[param_index]
+            habit_data[param_name] = update.message.text
+            ask_question(param_index + 1)
+
+    ask_question(0)
+
+
+# Функция для разбора команды /add_habit и извлечения данных о привычке
+def parse_habit_command(message):
+    habit_data = {}
+    parts = message.split()
+
+    # Проверяем, что команда корректно указана и состоит из двух частей
+    if len(parts) != 2 or parts[0] != "/add_habit":
+        return None  # Возвращаем None, если команда не соответствует ожидаемому формату
+
+    # Проходимся по каждой части и ищем ключевые слова, чтобы извлечь параметры привычки
+    for i in range(len(parts)):
+        part = parts[i].lower()
+
+        if part == "место:" and i < len(parts) - 1:
+            habit_data["place"] = parts[i + 1]
+        elif part == "время:" and i < len(parts) - 1:
+            habit_data["time"] = parts[i + 1]
+        elif part == "действие:" and i < len(parts) - 1:
+            habit_data["action"] = parts[i + 1]
+        elif part == "признак" and i < len(parts) - 2 and parts[i + 1] == "приятной" and parts[i + 2] == "привычки:":
+            habit_data["pleasant"] = True
+        elif part == "связанная" and i < len(parts) - 2 and parts[i + 1] == "привычка:":
+            habit_data["related_habit"] = parts[i + 2]
+        elif part == "периодичность:" and i < len(parts) - 1:
+            habit_data["frequency"] = parts[i + 1]
+        elif part == "вознаграждение:" and i < len(parts) - 1:
+            habit_data["reward"] = parts[i + 1]
+        elif part == "время" and i < len(parts) - 2 and parts[i + 1] == "на" and parts[i + 2] == "выполнение:":
+            if i + 3 < len(parts):
+                habit_data["time_to_complete"] = parts[i + 3]
+        elif part == "признак" and i < len(parts) - 2 and parts[i + 1] == "публичности:":
+            habit_data["is_public"] = True if parts[i + 2].lower() == "да" else False
+
+    return habit_data
 
 
 # Функция для обновления профиля пользователя
@@ -79,15 +161,21 @@ def help_command(update: Update, context):
 # Функция для команды /habits
 def habits_command(update: Update, context):
     chat_id = update.effective_chat.id
-    # Здесь добавьте логику для отображения списка привычек пользователю
-    context.bot.send_message(chat_id=chat_id, text='Список ваших привычек:\n1. Привычка 1\n2. Привычка 2')
+    user_id = update.effective_user.id
 
+    try:
+        user_profile = UserProfile.objects.get(user_id=user_id)
+        habits = Habit.objects.filter(user=user_profile.user)
 
-# Функция для команды /add_habit
-def add_habit_command(update: Update, context):
-    chat_id = update.effective_chat.id
-    # Здесь добавьте логику для добавления новой привычки пользователю
-    context.bot.send_message(chat_id=chat_id, text='Введите название новой привычки')
+        if habits:
+            habits_list = "\n".join([f"{index}. {habit.name}" for index, habit in enumerate(habits, start=1)])
+            message = f"Ваши привычки:\n{habits_list}"
+        else:
+            message = "У вас пока нет привычек."
+    except UserProfile.DoesNotExist:
+        message = "Ваш профиль не найден. Пожалуйста, начните с команды /start."
+
+    context.bot.send_message(chat_id=chat_id, text=message)
 
 
 # Функция для обработки ошибок
@@ -122,7 +210,7 @@ if __name__ == "__main__":
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help_command))
     dp.add_handler(CommandHandler("habits", habits_command))
-    dp.add_handler(CommandHandler("add_habit", add_habit_command))
+    dp.add_handler(CommandHandler("add_habit", add_habit))
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
     dp.add_error_handler(error)
 
