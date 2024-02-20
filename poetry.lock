@@ -733,6 +733,16 @@ djet = ["djet (>=0.3.0,<0.4.0)"]
 webauthn = ["webauthn (<1.0)"]
 
 [[package]]
+name = "dp"
+version = "1.00"
+description = "Automatically transform recursive functions to dynamic programming"
+optional = false
+python-versions = "*"
+files = [
+    {file = "dp-1.00.tar.gz", hash = "sha256:77eb01be83fe81139f1eb7871b93300b27f372b283146b7410d6195b4db19900"},
+]
+
+[[package]]
 name = "drf-spectacular"
 version = "0.27.1"
 description = "Sane and flexible OpenAPI 3 schema generation for Django REST framework"
@@ -1684,4 +1694,4 @@ brotli = ["Brotli"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "2edcf1013233c5ea011976e452eb4696f5540f1058e8acc086d32ee8a2cf617b"
+content-hash = "5bb8ccb6146e664f76e2ab6071abbeb472cabcdde6d8f0c63a6a32f0f7bf9a1e"

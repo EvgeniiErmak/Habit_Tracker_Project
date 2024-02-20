@@ -1,13 +1,12 @@
 # telegram_integration/views.py
 import os
 import django
+from telegram import Update
+from telegram.ext import CommandHandler, MessageHandler, Filters, Updater, ConversationHandler, CallbackContext
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-import logging
-from telegram import Bot, Update
-from telegram.ext import CommandHandler, MessageHandler, Filters, Updater, CallbackContext
 from django.contrib.auth.models import User
 from users.models import UserProfile
 from django.http import JsonResponse
@@ -31,87 +30,8 @@ class TelegramSession(requests.Session):
 requests = TelegramSession()
 
 # Инициализируем логгер
+import logging
 logger = logging.getLogger(__name__)
-
-# Список параметров привычки
-habit_params = ["место", "время", "действие", "признак приятной привычки", "связанная привычка",
-                "периодичность", "вознаграждение", "время на выполнение", "признак публичности"]
-
-# Пример формата ввода данных
-example_format = "Пример формата ввода данных:\n" \
-                 "Место: Кухня\n" \
-                 "Время: Утром\n" \
-                 "Действие: Завтрак\n" \
-                 "Признак приятной привычки: Да\n" \
-                 "Связанная привычка: Пить стакан воды перед едой\n" \
-                 "Периодичность: Ежедневно\n" \
-                 "Вознаграждение: Посмотреть любимый сериал\n" \
-                 "Время на выполнение: 30 минут\n" \
-                 "Признак публичности: Нет\n\n" \
-                 "Введите значение для параметра '{}':"
-
-
-# Функция для задания вопросов и создания привычки
-def add_habit(update: Update, context: CallbackContext):
-    chat_id = update.effective_chat.id
-    habit_data = {}
-
-    # Функция для задания вопроса
-    def ask_question(param_index):
-        if param_index < len(habit_params):
-            param_name = habit_params[param_index]
-            context.bot.send_message(chat_id=chat_id, text=example_format.format(param_name))
-            context.user_data["habit_param_index"] = param_index
-        else:
-            context.bot.send_message(chat_id=chat_id, text="Привычка успешно создана: {}".format(habit_data))
-            # Здесь можно сохранить привычку в базу данных или выполнять другие действия
-            context.user_data.pop("habit_param_index")
-
-    # Функция для обработки ответа пользователя
-    def handle_answer(update: Update, context: CallbackContext):
-        param_index = context.user_data.get("habit_param_index")
-        if param_index is not None and 0 <= param_index < len(habit_params):
-            param_name = habit_params[param_index]
-            habit_data[param_name] = update.message.text
-            ask_question(param_index + 1)
-
-    ask_question(0)
-
-
-# Функция для разбора команды /add_habit и извлечения данных о привычке
-def parse_habit_command(message):
-    habit_data = {}
-    parts = message.split()
-
-    # Проверяем, что команда корректно указана и состоит из двух частей
-    if len(parts) != 2 or parts[0] != "/add_habit":
-        return None  # Возвращаем None, если команда не соответствует ожидаемому формату
-
-    # Проходимся по каждой части и ищем ключевые слова, чтобы извлечь параметры привычки
-    for i in range(len(parts)):
-        part = parts[i].lower()
-
-        if part == "место:" and i < len(parts) - 1:
-            habit_data["place"] = parts[i + 1]
-        elif part == "время:" and i < len(parts) - 1:
-            habit_data["time"] = parts[i + 1]
-        elif part == "действие:" and i < len(parts) - 1:
-            habit_data["action"] = parts[i + 1]
-        elif part == "признак" and i < len(parts) - 2 and parts[i + 1] == "приятной" and parts[i + 2] == "привычки:":
-            habit_data["pleasant"] = True
-        elif part == "связанная" and i < len(parts) - 2 and parts[i + 1] == "привычка:":
-            habit_data["related_habit"] = parts[i + 2]
-        elif part == "периодичность:" and i < len(parts) - 1:
-            habit_data["frequency"] = parts[i + 1]
-        elif part == "вознаграждение:" and i < len(parts) - 1:
-            habit_data["reward"] = parts[i + 1]
-        elif part == "время" and i < len(parts) - 2 and parts[i + 1] == "на" and parts[i + 2] == "выполнение:":
-            if i + 3 < len(parts):
-                habit_data["time_to_complete"] = parts[i + 3]
-        elif part == "признак" and i < len(parts) - 2 and parts[i + 1] == "публичности:":
-            habit_data["is_public"] = True if parts[i + 2].lower() == "да" else False
-
-    return habit_data
 
 
 # Функция для обновления профиля пользователя
@@ -178,6 +98,144 @@ def habits_command(update: Update, context):
     context.bot.send_message(chat_id=chat_id, text=message)
 
 
+# Определяем константы для состояний диалога
+PLACE, TIME, ACTION, PLEASANT, RELATED_HABIT, FREQUENCY, REWARD, TIME_TO_COMPLETE, PUBLICITY, END = range(10)
+
+
+# Функция для начала создания привычки
+def start_adding_habit(update: Update, context: CallbackContext):
+    context.user_data['habit_data'] = {}
+    update.message.reply_text("Привет! Давайте начнем создание новой привычки. Пожалуйста, укажите место, где вы будете выполнять эту привычку.")
+    return PLACE
+
+
+# Функция для обработки места
+def handle_place(update: Update, context: CallbackContext):
+    habit_data = context.user_data['habit_data']
+    habit_data['place'] = update.message.text
+    update.message.reply_text("Отлично! Теперь укажите время, когда вы будете выполнять эту привычку.")
+    return TIME
+
+
+# Функция для обработки времени
+def handle_time(update: Update, context: CallbackContext):
+    habit_data = context.user_data['habit_data']
+    habit_data['time'] = update.message.text
+    update.message.reply_text("Хорошо! Теперь укажите действие, которое будет представлять из себя привычка.")
+    return ACTION
+
+
+# Функция для обработки действия
+def handle_action(update: Update, context: CallbackContext):
+    habit_data = context.user_data['habit_data']
+    habit_data['action'] = update.message.text
+    update.message.reply_text("Отлично! Эта привычка приносит вам удовольствие? (Да/Нет)")
+    return PLEASANT
+
+
+# Функция для обработки признака приятной привычки
+def handle_pleasant(update: Update, context: CallbackContext):
+    habit_data = context.user_data['habit_data']
+    response = update.message.text.lower()
+    if response == 'да':
+        habit_data['pleasant'] = True
+    elif response == 'нет':
+        habit_data['pleasant'] = False
+    else:
+        update.message.reply_text("Пожалуйста, ответьте 'Да' или 'Нет'.")
+        return PLEASANT
+
+    update.message.reply_text("Есть ли у этой привычки связанная привычка? Если есть, укажите ее.")
+    return RELATED_HABIT
+
+
+# Функция для обработки связанной привычки
+def handle_related_habit(update: Update, context: CallbackContext):
+    habit_data = context.user_data['habit_data']
+    habit_data['related_habit'] = update.message.text
+    update.message.reply_text("Как часто вы будете выполнять эту привычку? (Например, 'ежедневно', 'еженедельно')")
+    return FREQUENCY
+
+
+# Функция для обработки периодичности
+def handle_frequency(update: Update, context: CallbackContext):
+    habit_data = context.user_data['habit_data']
+    habit_data['frequency'] = update.message.text
+    update.message.reply_text("Какое вознаграждение вы предусматриваете за выполнение этой привычки?")
+    return REWARD
+
+
+# Функция для обработки вознаграждения
+def handle_reward(update: Update, context: CallbackContext):
+    habit_data = context.user_data['habit_data']
+    habit_data['reward'] = update.message.text
+    update.message.reply_text("Сколько времени вы планируете уделять на выполнение этой привычки? (Например, '30 минут')")
+    return TIME_TO_COMPLETE
+
+
+# Функция для обработки времени на выполнение
+def handle_time_to_complete(update: Update, context: CallbackContext):
+    habit_data = context.user_data['habit_data']
+    habit_data['time_to_complete'] = update.message.text
+    update.message.reply_text("Желаете ли вы делиться этой привычкой публично? (Да/Нет)")
+    return PUBLICITY
+
+
+# Функция для обработки признака публичности
+def handle_publicity(update: Update, context: CallbackContext):
+    habit_data = context.user_data['habit_data']
+    response = update.message.text.lower()
+    if response == 'да':
+        habit_data['is_public'] = True
+    elif response == 'нет':
+        habit_data['is_public'] = False
+    else:
+        update.message.reply_text("Пожалуйста, ответьте 'Да' или 'Нет'.")
+        return PUBLICITY
+
+    # Показываем пользователю введенные данные и предлагаем подтвердить создание привычки
+    update.message.reply_text(f"Вот информация о вашей привычке:\n{habit_data}\n\n"
+                              "Если все верно, нажмите /end, чтобы завершить создание привычки, "
+                              "или продолжайте вводить информацию.")
+
+    return END
+
+
+# Функция для завершения создания привычки
+def end_adding_habit(update: Update, context: CallbackContext):
+    habit_data = context.user_data['habit_data']
+
+    # Создаем новый объект привычки и сохраняем его в базе данных
+    habit = Habit.objects.create(
+        user=update.effective_user,
+        name=habit_data.get('name', ''),
+        place=habit_data.get('place', ''),
+        time=habit_data.get('time', ''),
+        action=habit_data.get('action', ''),
+        pleasant=habit_data.get('pleasant', ''),
+        related_habit=habit_data.get('related_habit', ''),
+        frequency=habit_data.get('frequency', ''),
+        reward=habit_data.get('reward', ''),
+        time_to_complete=habit_data.get('time_to_complete', ''),
+        publicity=habit_data.get('publicity', ''),
+    )
+
+    # Сообщаем пользователю о успешном создании привычки
+    update.message.reply_text(f"Привычка успешно создана: {habit_data}")
+
+    # Очищаем данные пользователя
+    context.user_data.clear()
+
+    return ConversationHandler.END
+
+
+# Функция для отмены создания привычки
+def cancel(update: Update, context: CallbackContext):
+    update.message.reply_text("Создание привычки отменено.")
+    context.user_data.clear()
+    return ConversationHandler.END
+
+
 # Функция для обработки ошибок
 def error(update: Update, context):
     logger.warning(f'Обновление {update} вызвало ошибку {context.error}')
@@ -201,18 +259,32 @@ def webhook(request):
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
-# Запуск бота, если файл запущен как скрипт
-if __name__ == "__main__":
-    bot = Bot(token=TELEGRAM_BOT_TOKEN)
-    updater = Updater(bot=bot, use_context=True)
-    dp = updater.dispatcher
+# Добавляем ConversationHandler для управления диалогом создания привычки
+conv_handler = ConversationHandler(
+    entry_points=[CommandHandler('add_habit', start_adding_habit)],
+    states={
+        PLACE: [MessageHandler(Filters.text & ~Filters.command, handle_place)],
+        TIME: [MessageHandler(Filters.text & ~Filters.command, handle_time)],
+        ACTION: [MessageHandler(Filters.text & ~Filters.command, handle_action)],
+        PLEASANT: [MessageHandler(Filters.text & ~Filters.command, handle_pleasant)],
+        RELATED_HABIT: [MessageHandler(Filters.text & ~Filters.command, handle_related_habit)],
+        FREQUENCY: [MessageHandler(Filters.text & ~Filters.command, handle_frequency)],
+        REWARD: [MessageHandler(Filters.text & ~Filters.command, handle_reward)],
+        TIME_TO_COMPLETE: [MessageHandler(Filters.text & ~Filters.command, handle_time_to_complete)],
+        PUBLICITY: [MessageHandler(Filters.text & ~Filters.command, handle_publicity)],
+        END: [CommandHandler('end', end_adding_habit)]
+    },
+    fallbacks=[CommandHandler('cancel', cancel)]
+)
 
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help_command))
-    dp.add_handler(CommandHandler("habits", habits_command))
-    dp.add_handler(CommandHandler("add_habit", add_habit))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
-    dp.add_error_handler(error)
+# Создаем объект updater и регистрируем обработчиков в нем
+updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
+dp = updater.dispatcher
+dp.add_handler(CommandHandler("start", start))
+dp.add_handler(CommandHandler("help", help_command))
+dp.add_handler(CommandHandler("habits", habits_command))
+dp.add_handler(conv_handler)
 
-    updater.start_polling()
-    updater.idle()
+# Запускаем бота
+updater.start_polling()
+updater.idle()
