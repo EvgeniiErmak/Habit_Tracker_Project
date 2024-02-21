@@ -45,10 +45,16 @@ class TelegramBot:
         # Add logic to add a new habit for the user
         context.bot.send_message(chat_id=chat_id, text='Enter the name of the new habit')
 
+    # Новый метод для обработки команды /echo
     def echo_handler(self, update, context):
         chat_id = update.effective_chat.id
         text = update.message.text
         context.bot.send_message(chat_id=chat_id, text=f"You said: {text}")
+
+    # Новый метод для обработки команды /echo
+    def echo_command(self, update, context):
+        chat_id = update.effective_chat.id
+        context.bot.send_message(chat_id=chat_id, text="This is an echo command!")
 
     def error_handler(self, update, context):
         logger.error(f"Update {update} caused error {context.error}")

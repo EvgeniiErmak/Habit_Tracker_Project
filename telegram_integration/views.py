@@ -12,6 +12,7 @@ from users.models import UserProfile
 from habit_tracker.models import Habit
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from datetime import datetime
 
 TELEGRAM_BOT_TOKEN = '6508959358:AAESl7Sb20VbkYx26qU-T0piY0UF_EeiWf8'
 
@@ -36,10 +37,7 @@ logger = logging.getLogger(__name__)
 
 # Функция для обновления профиля пользователя
 def update_user_profile(user_id, chat_id):
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        user = User.objects.create(id=user_id)
+    user, created = User.objects.get_or_create(id=user_id)
 
     user_profile, created = UserProfile.objects.get_or_create(
         user=user,
@@ -231,12 +229,15 @@ def end_adding_habit(update: Update, context: CallbackContext):
         # Если связанная привычка не найдена, создаем новую
         related_habit = Habit.objects.create(user=user, name=related_habit_name)
 
+    # Получаем текущее время, если 'time' не указано
+    current_time = habit_data.get('time', datetime.now().strftime("%H:%M"))  # Формат времени HH:MM
+
     # Создаем новый объект привычки и сохраняем его в базе данных
     habit = Habit.objects.create(
         user=user,
         name=habit_data.get('name', ''),
         place=habit_data.get('place', ''),
-        time=habit_data.get('time', ''),
+        time=current_time,
         action=habit_data.get('action', ''),
         pleasant=habit_data.get('pleasant', ''),
         related_habit=related_habit,  # Используем найденную или созданную привычку
