@@ -229,7 +229,7 @@ def end_adding_habit(update: Update, context: CallbackContext):
         # Если связанная привычка не найдена, создаем новую
         related_habit = Habit.objects.create(user=user, name=related_habit_name)
 
-    # Получаем текущее время, если 'time' не указано
+    # Получаем время, если 'time' не указано, устанавливаем текущее время
     current_time = habit_data.get('time', datetime.now().strftime("%H:%M"))  # Формат времени HH:MM
 
     # Создаем новый объект привычки и сохраняем его в базе данных
