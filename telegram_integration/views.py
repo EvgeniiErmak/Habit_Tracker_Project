@@ -52,7 +52,7 @@ def update_user_profile(user_id, chat_id):
 
 
 # Функция для команды /start
-def start(update: Update, context):
+def start(update: Update, context: CallbackContext):
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
     user_profile = update_user_profile(user_id, chat_id)
@@ -66,7 +66,7 @@ def start(update: Update, context):
 
 
 # Функция для команды /help
-def help_command(update: Update, context):
+def help_command(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     context.bot.send_message(chat_id=chat_id,
                              text='Список доступных команд:\n'
@@ -77,7 +77,7 @@ def help_command(update: Update, context):
 
 
 # Функция для команды /habits
-def habits_command(update: Update, context):
+def habits_command(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     user_id = update.effective_user.id
 
