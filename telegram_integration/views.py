@@ -63,7 +63,8 @@ def start(update: Update, context: CallbackContext):
                 "/start - Начать использование приложения\n" \
                 "/help - Показать список команд помощи\n" \
                 "/habits - Показать список привычек\n" \
-                "/add_habit - Добавить новую привычку"
+                "/add_habit - Добавить новую привычку\n" \
+                "/stop_bot - Отключить бота"
     context.bot.send_message(chat_id=chat_id, text=menu_text)
 
 
@@ -75,7 +76,8 @@ def help_command(update: Update, context: CallbackContext):
                                   '/start - Начать использование приложения\n'
                                   '/help - Показать список команд помощи\n'
                                   '/habits - Показать список привычек\n'
-                                  '/add_habit - Добавить новую привычку')
+                                  '/add_habit - Добавить новую привычку\n'
+                                  '/stop_bot - Отключить бота')
 
 
 # Функция для команды /habits
@@ -99,13 +101,21 @@ def habits_command(update: Update, context: CallbackContext):
 
 
 # Определяем константы для состояний диалога создания привычки
-PLACE, TIME, ACTION, PLEASANT, RELATED_HABIT, FREQUENCY, REWARD, TIME_TO_COMPLETE, PUBLICITY, END = range(10)
+PLACE, TIME, ACTION, PLEASANT, RELATED_HABIT, FREQUENCY, REWARD, TIME_TO_COMPLETE, PUBLICITY, NAME, END = range(11)
 
 
 # Функция для начала создания привычки
 def start_adding_habit(update: Update, context: CallbackContext):
     context.user_data['habit_data'] = {}
-    update.message.reply_text("Привет! Давайте начнем создание новой привычки. Пожалуйста, укажите место, где вы будете выполнять эту привычку.")
+    update.message.reply_text("Привет! Давайте начнем создание новой привычки. Пожалуйста, укажите название привычки.")
+    return NAME
+
+
+# Функция для обработки названия привычки
+def handle_name(update: Update, context: CallbackContext):
+    habit_data = context.user_data['habit_data']
+    habit_data['name'] = update.message.text
+    update.message.reply_text("Отлично! Теперь укажите место, где вы будете выполнять эту привычку.")
     return PLACE
 
 
@@ -242,7 +252,7 @@ def end_adding_habit(update: Update, context: CallbackContext):
         place=habit_data.get('place', ''),
         time=current_time,
         action=habit_data.get('action', ''),
-        pleasant=habit_data.get('pleasant', ''),
+        pleasant=bool(habit_data.get('pleasant')) if isinstance(habit_data.get('pleasant'), bool) else False,
         related_habit=related_habit,  # Используем найденную или созданную привычку
         frequency=habit_data.get('frequency', ''),
         reward=habit_data.get('reward', ''),
@@ -270,6 +280,7 @@ def cancel(update: Update, context: CallbackContext):
 conv_handler = ConversationHandler(
     entry_points=[CommandHandler('add_habit', start_adding_habit)],
     states={
+        NAME: [MessageHandler(Filters.text & ~Filters.command, handle_name)],
         PLACE: [MessageHandler(Filters.text & ~Filters.command, handle_place)],
         TIME: [MessageHandler(Filters.text & ~Filters.command, handle_time)],
         ACTION: [MessageHandler(Filters.text & ~Filters.command, handle_action)],
@@ -284,15 +295,42 @@ conv_handler = ConversationHandler(
     fallbacks=[CommandHandler('cancel', cancel)]
 )
 
-# Создаем объект updater и регистрируем обработчиков в нем
-updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
-dp = updater.dispatcher
-dp.add_handler(CommandHandler("start", start))
-dp.add_handler(CommandHandler("help", help_command))
-dp.add_handler(CommandHandler("habits", habits_command))
-dp.add_handler(conv_handler)
 
-# Запускаем бота
-updater.start_polling()
-updater.idle()
+# Функция для запуска бота
+def run_telegram_bot():
+    # Создаем объект updater и регистрируем обработчиков в нем
+    updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
+    dp = updater.dispatcher
+
+    # Регистрируем команды
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("help", help_command))
+    dp.add_handler(CommandHandler("habits", habits_command))
+    dp.add_handler(CommandHandler("stop_bot", stop_bot))
+    dp.add_handler(conv_handler)
+
+    # Запускаем бота
+    updater.start_polling()
+    updater.idle()
+
+
+# Инициализируем объект updater глобально
+updater = None
+
+
+# Функция для остановки бота
+def stop_bot(update: Update, context: CallbackContext):
+    chat_id = update.effective_chat.id
+    context.bot.send_message(chat_id=chat_id, text="Bot is stopping...")
+
+    if updater is not None:
+        updater.stop()
+        context.bot.send_message(chat_id=chat_id, text="Bot stopped successfully.")
+    else:
+        context.bot.send_message(chat_id=chat_id, text="Error stopping the bot: Updater is not initialized.")
+
+
+# Добавляем код для автоматического запуска бота при вызове файла
+if __name__ == "__main__":
+    run_telegram_bot()
 

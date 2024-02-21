@@ -19,9 +19,9 @@ class Habit(models.Model):
     action = models.CharField(max_length=255)
     pleasant = models.BooleanField(default=False)
     related_habit = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
-    frequency = models.IntegerField(default=1, validators=[MinValueValidator(1), validate_frequency])  # Days
+    frequency = models.CharField(max_length=50, default='каждый день', validators=[validate_frequency])
     reward = models.CharField(max_length=255, blank=True, null=True, validators=[validate_reward_and_related_habit])
-    duration = models.IntegerField(default=2, validators=[MinValueValidator(1), validate_duration])  # Minutes
+    duration = models.IntegerField(default=2, validators=[MinValueValidator(1), validate_duration])
     is_public = models.BooleanField(default=False)
     time_to_complete = models.CharField(max_length=255, blank=True, null=True)
     publicity = models.BooleanField(default=False)
