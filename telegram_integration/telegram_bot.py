@@ -65,3 +65,13 @@ class TelegramBot:
             logger.info(f"Message sent to {chat_id}: {text}")
         except Exception as e:
             logger.error(f"Error sending message to {chat_id}: {str(e)}")
+
+
+def run_telegram_bot():
+    bot_token = '6508959358:AAESl7Sb20VbkYx26qU-T0piY0UF_EeiWf8'
+    telegram_bot = TelegramBot(bot_token)
+    telegram_bot.start_bot()
+
+
+if __name__ == "__main__":
+    run_telegram_bot()

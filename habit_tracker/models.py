@@ -15,7 +15,7 @@ class Habit(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='habits')
     name = models.CharField(max_length=100)
     place = models.CharField(max_length=255)
-    time = models.TimeField(default=None, null=True) # или default='00:00'
+    time = models.TimeField(default=None, null=True)  # or default='00:00'
     action = models.CharField(max_length=255)
     pleasant = models.BooleanField(default=False)
     related_habit = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
@@ -23,6 +23,8 @@ class Habit(models.Model):
     reward = models.CharField(max_length=255, blank=True, null=True, validators=[validate_reward_and_related_habit])
     duration = models.IntegerField(default=2, validators=[MinValueValidator(1), validate_duration])  # Minutes
     is_public = models.BooleanField(default=False)
+    time_to_complete = models.CharField(max_length=255, blank=True, null=True)
+    publicity = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-id']

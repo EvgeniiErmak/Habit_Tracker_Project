@@ -1,7 +1,6 @@
 # telegram_integration/views.py
 import os
 import django
-from telegram import Update
 from telegram.ext import CommandHandler, MessageHandler, Filters, Updater, ConversationHandler, CallbackContext
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
@@ -10,7 +9,10 @@ django.setup()
 from django.contrib.auth.models import User
 from users.models import UserProfile
 from habit_tracker.models import Habit
-from django.http import HttpResponse
+from telegram import Update
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from telegram_integration.telegram_bot import TelegramBot
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 
@@ -115,18 +117,19 @@ def handle_place(update: Update, context: CallbackContext):
     return TIME
 
 
-# Добавляем функцию для настройки вебхука
+# Инициализируем телеграм-бот
+bot = TelegramBot(TELEGRAM_BOT_TOKEN)
+
+
 @csrf_exempt
+@require_POST
 def webhook(request):
-    # Проверяем, что запрос пришел методом POST
     if request.method == 'POST':
-        # Принимаем обновление от Telegram
-        update = Update.de_json(request.body, TELEGRAM_BOT_TOKEN)
-        # Обработка обновления
-        # ... (ваш код обработки обновления)
-        return HttpResponse(status=200)
+        update = Update.de_json(request.body, bot.bot)
+        bot.updater.update_queue.put(update)
+        return JsonResponse({'status': 'ok'})
     else:
-        return HttpResponse(status=405)
+        return JsonResponse({'status': 'error'}, status=405)
 
 
 # Функция для обработки времени
@@ -292,3 +295,4 @@ dp.add_handler(conv_handler)
 # Запускаем бота
 updater.start_polling()
 updater.idle()
+
