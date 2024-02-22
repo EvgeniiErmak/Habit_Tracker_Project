@@ -1,19 +1,19 @@
 # telegram_integration/tests.py
-from django.contrib.auth.models import User
-from .tasks import send_reminders, send_habit_reminder
-from django.utils import timezone
-from django.urls import reverse, resolve
-from unittest.mock import patch, MagicMock
-from telegram_integration.views import webhook
-from telegram_integration.telegram_bot import TelegramBot
-from rest_framework.test import APIClient
-from rest_framework import status
-from django.test import TestCase, Client
 from .views import start, help_command, habits_command, start_adding_habit
-from telegram import Update
-from users.models import UserProfile
+from telegram_integration.telegram_bot import TelegramBot
+from .tasks import send_reminders, send_habit_reminder
+from telegram_integration.views import webhook
+from django.contrib.auth.models import User
+from unittest.mock import patch, MagicMock
+from rest_framework.test import APIClient
+from django.urls import reverse, resolve
+from django.test import TestCase, Client
 from habit_tracker.models import Habit
+from users.models import UserProfile
+from django.utils import timezone
+from rest_framework import status
 from django.apps import apps
+from telegram import Update
 
 
 class SomeViewTestCase(TestCase):
@@ -46,7 +46,10 @@ class TelegramIntegrationViewsTestCase(TestCase):
     def test_help_command(self):
         update = Update(message=MockChat(id=12345), effective_user=MockUser(id=12345))
         response = help_command(update, None)
-        expected_response = "List of available commands:\n/start - Start using the application\n/help - Show list of help commands\n/habits - Show list of habits\n/add_habit - Add a new habit"
+        expected_response = "List of available commands:\n" \
+                            "/start - Start using the application\n" \
+                            "/help - Show list of help commands\n" \
+                            "/habits - Show list of habits\n/add_habit - Add a new habit"
         self.assertEqual(response, expected_response)
 
     def test_habits_command_with_existing_user_profile(self):
@@ -159,13 +162,19 @@ class TelegramBotTestCase(TestCase):
         update = Update(12345)
         context = MagicMock()
         self.bot.help_handler(update, context)
-        context.bot.send_message.assert_called_once_with(chat_id=12345, text='List of available commands:\n/start - Start using the application\n/help - Show list of help commands\n/habits - Show list of habits\n/add_habit - Add a new habit')
+        context.bot.send_message.assert_called_once_with(chat_id=12345,
+                                                         text='List of available commands:\n'
+                                                              '/start - Start using the application\n'
+                                                              '/help - Show list of help commands\n'
+                                                              '/habits - Show list of habits\n'
+                                                              '/add_habit - Add a new habit')
 
     def test_habits_handler(self):
         update = Update(12345)
         context = MagicMock()
         self.bot.habits_handler(update, context)
-        context.bot.send_message.assert_called_once_with(chat_id=12345, text='List of your habits:\n1. Habit 1\n2. Habit 2')
+        context.bot.send_message.assert_called_once_with(chat_id=12345,
+                                                         text='List of your habits:\n1. Habit 1\n2. Habit 2')
 
     def test_add_habit_handler(self):
         update = Update(12345)
@@ -194,16 +203,24 @@ class TelegramIntegrationTestCase(TestCase):
     @patch('telegram_integration.tasks.TelegramBot')
     def test_send_reminders(self, mock_telegram_bot):
         current_time = timezone.now().time()
-        habit = Habit.objects.create(user=self.user, name='Test Habit', place='Home', time=current_time)
+        habit = Habit.objects.create(user=self.user,
+                                     name='Test Habit',
+                                     place='Home',
+                                     time=current_time)
         send_reminders()
         mock_telegram_bot.assert_called_once_with(token='TELEGRAM_BOT_TOKEN')
-        mock_telegram_bot.return_value.send_message.assert_called_once_with(chat_id=616388234, text=f"Don't forget to do your habit: {habit.action} at {habit.place}!")
+        mock_telegram_bot.return_value.send_message.assert_called_once_with(chat_id=616388234,
+                                                                            text=f"Don't forget to do your habit: {habit.action} at {habit.place}!")
 
     @patch('telegram_integration.tasks.TelegramBot')
     def test_send_habit_reminder(self, mock_telegram_bot):
-        habit = Habit.objects.create(user=self.user, name='Test Habit', place='Home', time=timezone.now().time())
+        habit = Habit.objects.create(user=self.user,
+                                     name='Test Habit',
+                                     place='Home',
+                                     time=timezone.now().time())
         habit_id = habit.id
         send_habit_reminder(habit_id)
         mock_telegram_bot.assert_called_once_with(token='TELEGRAM_BOT_TOKEN')
-        mock_telegram_bot.return_value.send_message.assert_called_once_with(chat_id=616388234, text=f"Don't forget to do your habit: {habit.action} at {habit.place}!")
+        mock_telegram_bot.return_value.send_message.assert_called_once_with(chat_id=616388234,
+                                                                            text=f"Don't forget to do your habit: {habit.action} at {habit.place}!")
 

@@ -1,8 +1,8 @@
 # habit_tracker/tests.py
-from django.test import TestCase
 from django.contrib.auth.models import User
-from .models import Habit
 from rest_framework.test import APIClient
+from django.test import TestCase
+from .models import Habit
 
 
 class HabitModelTestCase(TestCase):

@@ -1,15 +1,15 @@
 # users/tests.py
-from rest_framework.test import APITestCase
-from django.contrib.auth.models import User
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.urls import reverse, resolve
 from users.views import RegisterUserView, CustomTokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import User
+from rest_framework.test import APITestCase
+from rest_framework.test import APIClient
+from django.urls import reverse, resolve
 from django.test import SimpleTestCase
 from users.models import UserProfile
-from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APIClient
+from django.test import TestCase
 
 
 class RegisterUserViewTestCase(TestCase):
