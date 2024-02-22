@@ -16,6 +16,15 @@ from habit_tracker.models import Habit
 from django.apps import apps
 
 
+class SomeViewTestCase(TestCase):
+    def test_some_view(self):
+        client = APIClient()
+        url = reverse('some_endpoint')
+        # Замените это на фактический тест для вашего представления
+        response = client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
 class TestTelegramIntegrationConfig(TestCase):
     def test_telegram_integration_config(self):
         app_config = apps.get_app_config('telegram_integration')

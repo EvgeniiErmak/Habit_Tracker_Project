@@ -6,8 +6,26 @@ from django.urls import reverse, resolve
 from users.views import RegisterUserView, CustomTokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
 from django.test import SimpleTestCase
-from django.test import TestCase
 from users.models import UserProfile
+from django.test import TestCase
+from rest_framework import status
+from rest_framework.test import APIClient
+
+
+class RegisterUserViewTestCase(TestCase):
+    def test_register_user_view(self):
+        client = APIClient()
+        url = reverse('register')
+        data = {'username': 'testuser', 'email': 'test@example.com', 'password': 'testpassword'}
+        response = client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_custom_token_obtain_pair_view(self):
+        client = APIClient()
+        url = reverse('token_obtain_pair')
+        data = {'username': 'testuser', 'password': 'testpassword'}
+        response = client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class UserProfileModelTestCase(TestCase):
@@ -34,11 +52,6 @@ class UsersUrlsTestCase(SimpleTestCase):
 
 
 class UsersViewsTestCase(APITestCase):
-    def test_register_user_view(self):
-        url = '/users/register/'
-        data = {'username': 'test_user', 'email': 'test@example.com', 'password': 'test_password'}
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, 201)
 
     def test_custom_token_obtain_pair_view(self):
         User.objects.create_user(username='test_user', email='test@example.com', password='test_password')
