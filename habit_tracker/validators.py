@@ -1,6 +1,5 @@
 # habit_tracker/validators.py
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 
 
 def validate_reward_and_related_habit(value, related_habit):

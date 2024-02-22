@@ -1,3 +1,4 @@
+# habit_tracker/apps.py
 from django.apps import AppConfig
 
 

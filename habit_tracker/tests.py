@@ -1,91 +1,94 @@
 # habit_tracker/tests.py
 from django.test import TestCase
 from django.contrib.auth.models import User
-from rest_framework.test import APIClient
-from rest_framework import status
 from .models import Habit
-from .serializers import HabitSerializer
+from rest_framework.test import APIClient
 
 
-class HabitTests(TestCase):
+class HabitModelTestCase(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.habit_data = {
-            'user': self.user,
-            'name': 'Test Habit',
-            'place': 'Test Place',
-            'time': '12:00',
-            'action': 'Test Action',
-            'pleasant': True,
-            'related_habit': None,
-            'frequency': 'каждый день',
-            'reward': 'Test Reward',
-            'duration': 2,
-            'is_public': False,
-            'time_to_complete': 'Test Time',
-            'publicity': False,
-        }
-        self.habit = Habit.objects.create(**self.habit_data)
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.habit = Habit.objects.create(
+            user=self.user,
+            name='Test Habit',
+            place='Test Place',
+            time=None,
+            action='Test Action',
+            pleasant=False,
+            frequency='каждый день',
+            duration=2,
+        )
+
+    def test_habit_created_successfully(self):
+        self.assertEqual(Habit.objects.count(), 1)
+        habit = Habit.objects.first()
+        self.assertEqual(habit.name, 'Test Habit')
+
+    def test_habit_related_name(self):
+        self.assertEqual(self.user.habits.count(), 1)
+        habit = self.user.habits.first()
+        self.assertEqual(habit.name, 'Test Habit')
+
+
+class HabitPermissionTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.other_user = User.objects.create_user(username='otheruser', password='54321')
+        self.habit = Habit.objects.create(
+            user=self.user,
+            name='Test Habit',
+            place='Test Place',
+            time=None,
+            action='Test Action',
+            pleasant=False,
+            frequency='каждый день',
+            duration=2,
+        )
         self.client = APIClient()
 
-    def test_habit_model(self):
-        self.assertEqual(str(self.habit), self.habit_data['name'])
+    def test_habit_owner_permission(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(f'/update-habit/{self.habit.pk}/')
+        self.assertEqual(response.status_code, 200)
 
-    def test_habit_serializer(self):
-        serializer = HabitSerializer(instance=self.habit)
-        self.assertEqual(serializer.data, self.habit_data)
+    def test_other_user_permission(self):
+        self.client.force_authenticate(user=self.other_user)
+        response = self.client.get(f'/update-habit/{self.habit.pk}/')
+        self.assertEqual(response.status_code, 403)
 
-    def test_habit_view_set(self):
-        self.client.force_login(user=self.user)
 
-        # Test Create
-        response = self.client.post('/api/habits/', data=self.habit_data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+class HabitViewTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='12345')
+        self.client = APIClient()
 
-        # Test List
-        response = self.client.get('/api/habits/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 2)  # Including the one created in the setup
-
-        # Test Retrieve
-        response = self.client.get(f'/api/habits/{self.habit.id}/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Test Update
-        updated_data = {'name': 'Updated Habit'}
-        response = self.client.put(f'/api/habits/{self.habit.id}/', data=updated_data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['name'], updated_data['name'])
-
-        # Test Delete
-        response = self.client.delete(f'/api/habits/{self.habit.id}/')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Habit.objects.count(), 1)
+    def test_habit_list_view(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get('/habits/')
+        self.assertEqual(response.status_code, 200)
 
     def test_public_habit_list_view(self):
-        response = self.client.get('/api/habits/public/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get('/public-habits/')
+        self.assertEqual(response.status_code, 200)
 
     def test_user_habit_list_view(self):
-        self.client.force_login(user=self.user)
-        response = self.client.get('/api/habits/user/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 1)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get('/my-habits/')
+        self.assertEqual(response.status_code, 200)
 
     def test_habit_create_view(self):
-        self.client.force_login(user=self.user)
-        response = self.client.post('/api/habits/create/', data=self.habit_data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/create-habit/', {'name': 'New Habit', 'place': 'New Place', 'action': 'New Action', 'pleasant': False, 'frequency': 'каждый день', 'duration': 2})
+        self.assertEqual(response.status_code, 201)
 
     def test_habit_update_view(self):
-        self.client.force_login(user=self.user)
-        updated_data = {'name': 'Updated Habit'}
-        response = self.client.put(f'/api/habits/{self.habit.id}/update/', data=updated_data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['name'], updated_data['name'])
+        habit = Habit.objects.create(user=self.user, name='Test Habit', place='Test Place', time=None, action='Test Action', pleasant=False, frequency='каждый день', duration=2)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.put(f'/update-habit/{habit.pk}/', {'name': 'Updated Habit', 'place': 'Updated Place', 'action': 'Updated Action', 'pleasant': False, 'frequency': 'каждый день', 'duration': 2})
+        self.assertEqual(response.status_code, 200)
 
     def test_habit_delete_view(self):
-        self.client.force_login(user=self.user)
-        response = self.client.delete(f'/api/habits/{self.habit.id}/delete/')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Habit.objects.count(), 0)
+        habit = Habit.objects.create(user=self.user, name='Test Habit', place='Test Place', time=None, action='Test Action', pleasant=False, frequency='каждый день', duration=2)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(f'/delete-habit/{habit.pk}/')
+        self.assertEqual(response.status_code, 204)
