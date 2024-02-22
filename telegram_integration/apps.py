@@ -1,3 +1,4 @@
+# telegram_integration/apps.py
 from django.apps import AppConfig
 
 
