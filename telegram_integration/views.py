@@ -15,6 +15,7 @@ from django.views.decorators.http import require_POST
 from telegram_integration.telegram_bot import TelegramBot
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
+from django.db import IntegrityError
 
 TELEGRAM_BOT_TOKEN = '6508959358:AAESl7Sb20VbkYx26qU-T0piY0UF_EeiWf8'
 
@@ -245,26 +246,48 @@ def end_adding_habit(update: Update, context: CallbackContext):
     # Получаем время, если 'time' не указано, устанавливаем текущее время
     current_time = habit_data.get('time', datetime.now().strftime("%H:%M"))  # Формат времени HH:MM
 
+    # Передаем значения по умолчанию для полей, если они не указаны
+    default_values = {
+        'place': '',
+        'time': current_time,
+        'action': '',
+        'reward': '',
+        'time_to_complete': '',
+    }
+
+    for key, default_value in default_values.items():
+        habit_data[key] = habit_data.get(key, default_value)
+
     # Создаем новый объект привычки и сохраняем его в базе данных
-    habit = Habit.objects.create(
-        user=user,
-        name=habit_data.get('name', ''),
-        place=habit_data.get('place', ''),
-        time=current_time,
-        action=habit_data.get('action', ''),
-        pleasant=bool(habit_data.get('pleasant')) if isinstance(habit_data.get('pleasant'), bool) else False,
-        related_habit=related_habit,  # Используем найденную или созданную привычку
-        frequency=habit_data.get('frequency', ''),
-        reward=habit_data.get('reward', ''),
-        time_to_complete=habit_data.get('time_to_complete', ''),
-        publicity=habit_data.get('publicity', ''),
-    )
+    try:
+        habit = Habit.objects.create(
+            user=user,
+            name=habit_data['name'],
+            place=habit_data['place'],
+            time=habit_data['time'],
+            action=habit_data['action'],
+            pleasant=habit_data.get('pleasant', False),
+            related_habit=related_habit,
+            frequency=habit_data.get('frequency', ''),
+            reward=habit_data['reward'],
+            duration=habit_data.get('duration', 2),
+            is_public=habit_data.get('is_public', False),
+            time_to_complete=habit_data['time_to_complete'],
+            publicity=habit_data.get('publicity', False),
+        )
 
-    # Сообщаем пользователю об успешном создании привычки
-    update.message.reply_text(f"Привычка успешно создана: {habit_data}")
+        # Сообщаем пользователю об успешном создании привычки
+        update.message.reply_text(f"Привычка успешно создана: {habit_data}")
 
-    # Очищаем данные пользователя
-    context.user_data.clear()
+        # Очищаем данные пользователя
+        context.user_data.clear()
+
+    except IntegrityError as e:
+        # Обработка ошибки IntegrityError (например, уникальность)
+        update.message.reply_text(f"Ошибка при создании привычки: {e}")
+    except Exception as e:
+        # Обработка других ошибок при сохранении привычки
+        update.message.reply_text(f"Ошибка при создании привычки: {e}")
 
     return ConversationHandler.END
 
