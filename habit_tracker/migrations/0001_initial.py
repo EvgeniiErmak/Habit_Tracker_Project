@@ -17,23 +17,74 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Habit',
+            name="Habit",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('place', models.CharField(max_length=255)),
-                ('time', models.TimeField(default=None, null=True)),
-                ('action', models.CharField(max_length=255)),
-                ('pleasant', models.BooleanField(default=False)),
-                ('frequency', models.IntegerField(default=1, validators=[django.core.validators.MinValueValidator(1), habit_tracker.validators.validate_frequency])),
-                ('reward', models.CharField(blank=True, max_length=255, null=True, validators=[habit_tracker.validators.validate_reward_and_related_habit])),
-                ('duration', models.IntegerField(default=2, validators=[django.core.validators.MinValueValidator(1), habit_tracker.validators.validate_duration])),
-                ('is_public', models.BooleanField(default=False)),
-                ('related_habit', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='habit_tracker.habit')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='habits', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("place", models.CharField(max_length=255)),
+                ("time", models.TimeField(default=None, null=True)),
+                ("action", models.CharField(max_length=255)),
+                ("pleasant", models.BooleanField(default=False)),
+                (
+                    "frequency",
+                    models.IntegerField(
+                        default=1,
+                        validators=[
+                            django.core.validators.MinValueValidator(1),
+                            habit_tracker.validators.validate_frequency,
+                        ],
+                    ),
+                ),
+                (
+                    "reward",
+                    models.CharField(
+                        blank=True,
+                        max_length=255,
+                        null=True,
+                        validators=[
+                            habit_tracker.validators.validate_reward_and_related_habit
+                        ],
+                    ),
+                ),
+                (
+                    "duration",
+                    models.IntegerField(
+                        default=2,
+                        validators=[
+                            django.core.validators.MinValueValidator(1),
+                            habit_tracker.validators.validate_duration,
+                        ],
+                    ),
+                ),
+                ("is_public", models.BooleanField(default=False)),
+                (
+                    "related_habit",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="habit_tracker.habit",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="habits",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-id'],
+                "ordering": ["-id"],
             },
         ),
     ]

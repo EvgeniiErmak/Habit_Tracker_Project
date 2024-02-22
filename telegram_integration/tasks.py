@@ -18,11 +18,13 @@ def send_reminders():
 def send_habit_reminder(habit_id):
     try:
         habit = Habit.objects.get(id=habit_id)
-        user_chat_id = habit.user.profile.telegram_chat_id  # Replace with actual field name
+        user_chat_id = (
+            habit.user.profile.telegram_chat_id
+        )  # Replace with actual field name
 
         message = f"Don't forget to do your habit: {habit.action} at {habit.place}!"
 
-        bot = TelegramBot(token='TELEGRAM_BOT_TOKEN')
+        bot = TelegramBot(token="TELEGRAM_BOT_TOKEN")
         bot.send_message(chat_id=616388234, text=message)
     except Habit.DoesNotExist:
         pass  # Handle the case when habit is deleted before the reminder is sent

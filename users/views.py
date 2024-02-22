@@ -14,22 +14,29 @@ class RegisterUserView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
-        username = request.data.get('username')
-        email = request.data.get('email')
-        password = request.data.get('password')
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
 
         if not username or not email or not password:
-            return Response({"error": "Username, email, and password are required."}, status=400)
+            return Response(
+                {"error": "Username, email, and password are required."}, status=400
+            )
 
-        user = User.objects.create_user(username=username, email=email, password=password)
+        user = User.objects.create_user(
+            username=username, email=email, password=password
+        )
         user.save()
 
         refresh = RefreshToken.for_user(user)
 
-        return Response({
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        }, status=201)
+        return Response(
+            {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            },
+            status=201,
+        )
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -37,14 +44,16 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         response = super().post(request, *args, **kwargs)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
+        user = serializer.validated_data["user"]
         refresh = self.get_token(user)
-        return Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-            'username': user.username,
-            'email': user.email,
-        })
+        return Response(
+            {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "username": user.username,
+                "email": user.email,
+            }
+        )
 
 
 class CustomAuthentication(APIView):
@@ -53,7 +62,7 @@ class CustomAuthentication(APIView):
 
     def get(self, request, *args, **kwargs):
         user = request.user
-        return Response({'username': user.username, 'email': user.email})
+        return Response({"username": user.username, "email": user.email})
 
 
 class UserLogoutView(APIView):
@@ -61,7 +70,7 @@ class UserLogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        refresh_token = request.data.get('refresh_token')
+        refresh_token = request.data.get("refresh_token")
 
         if not refresh_token:
             return Response({"error": "Refresh token is required."}, status=400)

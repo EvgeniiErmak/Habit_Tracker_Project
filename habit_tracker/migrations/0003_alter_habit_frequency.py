@@ -7,13 +7,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('habit_tracker', '0002_habit_publicity_habit_time_to_complete'),
+        ("habit_tracker", "0002_habit_publicity_habit_time_to_complete"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='habit',
-            name='frequency',
-            field=models.CharField(default='каждый день', max_length=50, validators=[habit_tracker.validators.validate_frequency]),
+            model_name="habit",
+            name="frequency",
+            field=models.CharField(
+                default="каждый день",
+                max_length=50,
+                validators=[habit_tracker.validators.validate_frequency],
+            ),
         ),
     ]

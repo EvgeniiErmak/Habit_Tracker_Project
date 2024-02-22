@@ -17,7 +17,9 @@ class TelegramBot:
         self.dispatcher.add_handler(CommandHandler("help", self.help_handler))
         self.dispatcher.add_handler(CommandHandler("habits", self.habits_handler))
         self.dispatcher.add_handler(CommandHandler("add_habit", self.add_habit_handler))
-        self.dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, self.echo_handler))
+        self.dispatcher.add_handler(
+            MessageHandler(Filters.text & ~Filters.command, self.echo_handler)
+        )
         self.dispatcher.add_error_handler(self.error_handler)
         self.updater.start_polling()
         self.updater.idle()
@@ -28,22 +30,28 @@ class TelegramBot:
 
     def help_handler(self, update, context):
         chat_id = update.effective_chat.id
-        context.bot.send_message(chat_id=chat_id,
-                                 text='List of available commands:\n'
-                                      '/start - Start using the application\n'
-                                      '/help - Show list of help commands\n'
-                                      '/habits - Show list of habits\n'
-                                      '/add_habit - Add a new habit')
+        context.bot.send_message(
+            chat_id=chat_id,
+            text="List of available commands:\n"
+            "/start - Start using the application\n"
+            "/help - Show list of help commands\n"
+            "/habits - Show list of habits\n"
+            "/add_habit - Add a new habit",
+        )
 
     def habits_handler(self, update, context):
         chat_id = update.effective_chat.id
         # Add logic to display the list of habits to the user
-        context.bot.send_message(chat_id=chat_id, text='List of your habits:\n1. Habit 1\n2. Habit 2')
+        context.bot.send_message(
+            chat_id=chat_id, text="List of your habits:\n1. Habit 1\n2. Habit 2"
+        )
 
     def add_habit_handler(self, update, context):
         chat_id = update.effective_chat.id
         # Add logic to add a new habit for the user
-        context.bot.send_message(chat_id=chat_id, text='Enter the name of the new habit')
+        context.bot.send_message(
+            chat_id=chat_id, text="Enter the name of the new habit"
+        )
 
     # Новый метод для обработки команды /echo
     def echo_handler(self, update, context):
@@ -68,7 +76,7 @@ class TelegramBot:
 
 
 def run_telegram_bot():
-    bot_token = '6508959358:AAESl7Sb20VbkYx26qU-T0piY0UF_EeiWf8'
+    bot_token = "6508959358:AAESl7Sb20VbkYx26qU-T0piY0UF_EeiWf8"
     telegram_bot = TelegramBot(bot_token)
     telegram_bot.start_bot()
 

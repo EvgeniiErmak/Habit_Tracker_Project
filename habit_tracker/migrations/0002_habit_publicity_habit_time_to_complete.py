@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('habit_tracker', '0001_initial'),
+        ("habit_tracker", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='habit',
-            name='publicity',
+            model_name="habit",
+            name="publicity",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='habit',
-            name='time_to_complete',
+            model_name="habit",
+            name="time_to_complete",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
     ]

@@ -14,7 +14,7 @@ class HabitViewSet(viewsets.ModelViewSet):
     pagination_class = HabitPagination
 
     def get_permissions(self):
-        if self.action in ['list']:
+        if self.action in ["list"]:
             return [permissions.IsAuthenticated()]
         return [permissions.IsAuthenticated(), IsOwnerOrReadOnly()]
 
