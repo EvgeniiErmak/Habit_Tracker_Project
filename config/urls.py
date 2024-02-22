@@ -1,5 +1,4 @@
 # config/urls.py
-
 from users.views import RegisterUserView
 from habit_tracker.views import (
     PublicHabitListView,

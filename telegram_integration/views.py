@@ -1,34 +1,32 @@
 # telegram_integration/views.py
 import os
 import django
+import requests
 from telegram.ext import (
+    ConversationHandler,
+    CallbackContext,
     CommandHandler,
     MessageHandler,
     Filters,
     Updater,
-    ConversationHandler,
-    CallbackContext,
 )
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
-from django.contrib.auth.models import User
-from users.models import UserProfile
-from habit_tracker.models import Habit
-from telegram import Update
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
 from telegram_integration.telegram_bot import TelegramBot
+from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from datetime import datetime
+from django.contrib.auth.models import User
+from requests.adapters import HTTPAdapter
+from habit_tracker.models import Habit
+from users.models import UserProfile
+from django.http import JsonResponse
 from django.db import IntegrityError
+from datetime import datetime
+from telegram import Update
 
 TELEGRAM_BOT_TOKEN = "6508959358:AAESl7Sb20VbkYx26qU-T0piY0UF_EeiWf8"
-
-# Устанавливаем оптимальный размер пула соединений для Telegram API
-import requests
-from requests.adapters import HTTPAdapter
 
 
 class TelegramSession(requests.Session):

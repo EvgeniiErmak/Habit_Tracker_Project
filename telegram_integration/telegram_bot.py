@@ -1,7 +1,7 @@
 # telegram_integration/telegram_bot.py
-import logging
-from telegram import Bot
 from telegram.ext import CommandHandler, MessageHandler, Filters, Updater
+from telegram import Bot
+import logging
 
 logger = logging.getLogger(__name__)
 
