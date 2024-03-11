@@ -66,8 +66,8 @@
 
 Если у вас возникли вопросы или предложения по проекту, свяжитесь с нами:
 
-- Email: your_email@example.com
-- Telegram: @your_telegram_username
+- Email: djermak3000@mail.ru
+- Telegram: https://t.me/DJErmak3000
 
 ## Лицензия
 
