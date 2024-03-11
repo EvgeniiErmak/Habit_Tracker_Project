@@ -7,10 +7,12 @@ from rest_framework import generics, permissions
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
+from .serializers import UserSerializer
 
 
 class RegisterUserView(generics.CreateAPIView):
     queryset = User.objects.all()
+    serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
