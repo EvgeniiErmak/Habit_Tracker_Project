@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "habit_tracker",
     "corsheaders",
+    'drf_yasg',
     "config",
     "users",
 ]
@@ -174,7 +175,9 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",  # Обратите внимание на эту строку
 }
+
 
 # Add celery settings
 CELERY_BROKER_URL = "redis://localhost:6379"
