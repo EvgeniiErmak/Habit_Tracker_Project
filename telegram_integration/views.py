@@ -1,5 +1,6 @@
 # telegram_integration/views.py
 import os
+import django
 import logging
 import requests
 from telegram.ext import (
@@ -13,14 +14,18 @@ from telegram.ext import (
 from telegram_integration.telegram_bot import TelegramBot
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.models import User
 from requests.adapters import HTTPAdapter
-from habit_tracker.models import Habit
-from users.models import UserProfile
 from django.http import JsonResponse
 from django.db import IntegrityError
 from datetime import datetime
 from telegram import Update
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+django.setup()
+
+from django.contrib.auth.models import User
+from habit_tracker.models import Habit
+from users.models import UserProfile
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
