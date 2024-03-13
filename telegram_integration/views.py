@@ -312,7 +312,7 @@ def end_adding_habit(update: Update, context: CallbackContext):
 
     # Создаем новый объект привычки и сохраняем его в базе данных
     try:
-        habit = Habit.objects.create(
+        Habit.objects.create(
             user=user,
             name=habit_data["name"],
             place=habit_data["place"],
@@ -392,15 +392,15 @@ def run_telegram_bot():
     updater.start_polling()
     updater.idle()
 
-
-# Инициализируем объект updater глобально
-updater = None
+    return updater  # Возвращаем объект updater
 
 
 # Функция для остановки бота
 def stop_bot(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     context.bot.send_message(chat_id=chat_id, text="Bot is stopping...")
+
+    updater = context.bot_data.get("updater")  # Получаем объект updater из bot_data
 
     if updater is not None:
         updater.stop()
