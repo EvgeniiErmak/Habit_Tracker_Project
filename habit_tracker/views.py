@@ -1,11 +1,8 @@
 # habit_tracker/views.py
-from rest_framework import viewsets, permissions, pagination, generics
+from rest_framework import viewsets, permissions, generics
 from .serializers import HabitSerializer
+from .paginators import HabitPagination
 from .models import Habit
-
-
-class HabitPagination(pagination.PageNumberPagination):
-    page_size = 5
 
 
 class HabitViewSet(viewsets.ModelViewSet):
