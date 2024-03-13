@@ -1,4 +1,5 @@
 # telegram_integration/telegram_bot.py
+from decouple import config
 from telegram.ext import CommandHandler, MessageHandler, Filters, Updater
 from telegram import Bot
 import logging
@@ -75,9 +76,12 @@ class TelegramBot:
             logger.error(f"Error sending message to {chat_id}: {str(e)}")
 
 
+# Чтение токена из .env файла
+TELEGRAM_BOT_TOKEN = config("TELEGRAM_BOT_TOKEN")
+
+
 def run_telegram_bot():
-    bot_token = "6508959358:AAESl7Sb20VbkYx26qU-T0piY0UF_EeiWf8"
-    telegram_bot = TelegramBot(bot_token)
+    telegram_bot = TelegramBot(TELEGRAM_BOT_TOKEN)
     telegram_bot.start_bot()
 
 

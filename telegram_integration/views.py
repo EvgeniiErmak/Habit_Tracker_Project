@@ -1,6 +1,6 @@
 # telegram_integration/views.py
 import os
-import django
+import logging
 import requests
 from telegram.ext import (
     ConversationHandler,
@@ -10,10 +10,6 @@ from telegram.ext import (
     Filters,
     Updater,
 )
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-django.setup()
-
 from telegram_integration.telegram_bot import TelegramBot
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -41,8 +37,6 @@ class TelegramSession(requests.Session):
 requests = TelegramSession()
 
 # Инициализируем логгер
-import logging
-
 logger = logging.getLogger(__name__)
 
 
