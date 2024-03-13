@@ -65,7 +65,7 @@ def update_user_profile(user_id, chat_id):
 def start(update: Update, context: CallbackContext):
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
-    user_profile = update_user_profile(user_id, chat_id)
+    update_user_profile(user_id, chat_id)
     menu_text = (
         "Добро пожаловать в Habit Tracker! Вы будете получать напоминания о ваших привычках здесь.\n"
         "Вот список доступных команд:\n"
@@ -84,11 +84,11 @@ def help_command(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=chat_id,
         text="Список доступных команд:\n"
-        "/start - Начать использование приложения\n"
-        "/help - Показать список команд помощи\n"
-        "/habits - Показать список привычек\n"
-        "/add_habit - Добавить новую привычку\n"
-        "/stop_bot - Отключить бота",
+             "/start - Начать использование приложения\n"
+             "/help - Показать список команд помощи\n"
+             "/habits - Показать список привычек\n"
+             "/add_habit - Добавить новую привычку\n"
+             "/stop_bot - Отключить бота",
     )
 
 
