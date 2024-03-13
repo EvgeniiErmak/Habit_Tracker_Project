@@ -26,7 +26,7 @@ from django.db import IntegrityError
 from datetime import datetime
 from telegram import Update
 
-TELEGRAM_BOT_TOKEN = "6508959358:AAESl7Sb20VbkYx26qU-T0piY0UF_EeiWf8"
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
 
 class TelegramSession(requests.Session):
