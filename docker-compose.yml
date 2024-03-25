@@ -1,46 +1,45 @@
 version: '3.8'
+
 services:
-  web:
-    build: .
-    command: poetry run python manage.py runserver 0.0.0.0:8000
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile.django
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - ./.env
     depends_on:
       - db
       - redis
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
+    command: celery -A config worker --loglevel=info --uid=1000
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+      - redis
+
   db:
-    image: postgres:13
+    image: postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    env_file:
-      - .env
-  redis:
-    image: "redis:alpine"
+      - postgres_data:/var/lib/postgresql/data
     environment:
-      - REDIS_URL=redis://redis:6379
-  celery_worker:
-    build: .
-    command: poetry run celery -A config.celery worker --loglevel=info
-    volumes:
-      - .:/app
-    env_file:
-      - .env
-    depends_on:
-      - web
-      - redis
-  celery_beat:
-    build: .
-    command: poetry run celery -A config.celery beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-    volumes:
-      - .:/app
-    env_file:
-      - .env
-    depends_on:
-      - web
-      - redis
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+  redis:
+    image: redis:alpine
+
 volumes:
   postgres_data:

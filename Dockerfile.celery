@@ -1,0 +1,20 @@
+# Используйте тот же образ Python
+FROM python:3.11-slim
+
+# Установите рабочую директорию в контейнере
+WORKDIR /app
+
+# Копируйте файлы проекта в контейнер
+COPY . /app
+
+# Установите зависимости
+RUN pip install poetry
+RUN poetry config virtualenvs.create false && \
+    poetry export -f requirements.txt --without-hashes | pip install -r /dev/stdin
+
+# Создайте пользователя с UID 1000 и переключитесь на него
+RUN adduser --disabled-password --gecos '' --uid 1000 myuser
+USER myuser
+
+# Команда для запуска Celery worker
+CMD ["celery", "-A", "Habit_Tracker_Project", "worker", "--loglevel=info"]
