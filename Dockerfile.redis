@@ -1,0 +1,4 @@
+# Dockerfile.redis
+
+# Use official Redis image
+FROM redis:latest

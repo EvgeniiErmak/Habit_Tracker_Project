@@ -1,0 +1,8 @@
+# Dockerfile.postgres
+
+# Use official PostgreSQL image
+FROM postgres:latest
+
+# This will be executed when container starts up
+# The initialization scripts go into /docker-entrypoint-initdb.d/
+COPY init.sql /docker-entrypoint-initdb.d/

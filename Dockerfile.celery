@@ -22,5 +22,7 @@ RUN chown -R myuser:myuser /app
 
 USER myuser
 
-# Команда для запуска Celery worker
-CMD ["celery", "-A", "Habit_Tracker_Project", "worker", "--loglevel=info"]
+# Используйте shell-скрипт в качестве точки входа для задержки запуска Celery
+COPY celery_entrypoint.sh /app/celery_entrypoint.sh
+RUN chmod +x /app/celery_entrypoint.sh
+ENTRYPOINT ["/app/celery_entrypoint.sh"]
