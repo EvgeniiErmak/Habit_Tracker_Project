@@ -20,5 +20,8 @@ RUN adduser --disabled-password --gecos '' --uid 1000 myuser \
 RUN poetry config virtualenvs.create false \
     && poetry install --no-dev --no-root
 
+# Добавьте команду USER root для доступа
+USER root
+
 # Команда для запуска Celery (пример)
 CMD ["celery", "worker", "--app=myapp", "-l", "info"]

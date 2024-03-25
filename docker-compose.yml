@@ -31,6 +31,9 @@ services:
     depends_on:
       - db
       - redis
+    # Запускать контейнер Celery после контейнеров PostgreSQL и Redis
+    entrypoint: >
+      bash -c "while ! nc -z db 5432 && ! nc -z redis 6379; do sleep 1; done; celery -A config worker --loglevel=info --uid=1000"
 
   db:
     image: postgres
