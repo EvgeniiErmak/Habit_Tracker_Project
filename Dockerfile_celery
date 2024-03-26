@@ -1,0 +1,26 @@
+# Dockerfile.celery
+
+FROM python:3.11-slim
+
+# Установите рабочую директорию в контейнере
+WORKDIR /app
+
+# Копируйте файлы проекта в контейнер
+COPY . /app
+
+# Установите poetry
+RUN pip install poetry
+
+# Отключите создание виртуального окружения в Poetry и установите зависимости
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-dev --no-root
+
+# Установите пакет netcat-openbsd (если необходимо)
+RUN apt-get update && apt-get install -y netcat-openbsd
+
+# Создайте пользователя с UID 1000 (если необходимо)
+RUN adduser --disabled-password --gecos '' --uid 1000 myuser && \
+    chown -R myuser:myuser /app
+
+# Добавьте команду USER root для доступа (если необходимо)
+USER root

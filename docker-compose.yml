@@ -1,13 +1,12 @@
 # docker-compose.yml
-
 version: '3.8'
 
 services:
+
   django:
     build:
       context: .
-      dockerfile: Dockerfile.django
-    command: python manage.py runserver 0.0.0.0:8000
+      dockerfile: Dockerfile
     volumes:
       - .:/app
     ports:
@@ -22,8 +21,8 @@ services:
   celery:
     build:
       context: .
-      dockerfile: Dockerfile.celery
-    command: celery -A config worker --loglevel=info --uid=1000
+      dockerfile: Dockerfile_celery
+    command: bash -c "celery -A config worker --loglevel=info --uid=1000"
     volumes:
       - .:/app
     env_file:
@@ -31,9 +30,6 @@ services:
     depends_on:
       - db
       - redis
-    # Запускать контейнер Celery после контейнеров PostgreSQL и Redis
-    entrypoint: >
-      bash -c "while ! nc -z db 5432 && ! nc -z redis 6379; do sleep 1; done; celery -A config worker --loglevel=info --uid=1000"
 
   db:
     image: postgres
