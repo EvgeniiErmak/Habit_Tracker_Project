@@ -12,9 +12,6 @@ COPY . /app
 # Установите зависимости
 RUN pip install poetry
 
-# Установка пакета Celery
-RUN /opt/poetry/venv/bin/pip install celery
-
 # Создайте пользователя с UID 1000
 RUN adduser --disabled-password --gecos '' --uid 1000 myuser \
     && chown -R myuser:myuser /app
