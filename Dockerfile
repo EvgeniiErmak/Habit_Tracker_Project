@@ -1,6 +1,6 @@
 # Dockerfile
 
-FROM python:3.10 as python-base
+FROM python:3.11.7 as python-base
 
 # https://python-poetry.org/docs#ci-recommendations
 ENV POETRY_VERSION=1.2.0

@@ -1,7 +1,7 @@
 # Dockerfile.celery
 
 # Используйте тот же образ Python
-FROM python:3.11-slim
+FROM python:3.11.7
 
 # Установите рабочую директорию в контейнере
 WORKDIR /app
